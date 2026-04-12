@@ -8,11 +8,13 @@
       width: 350px;
       font-family: Arial, sans-serif;
       padding: 10px;
+      background-color: #23484f;
+      color: #ffffff;
     }
     
     .header {
       display: flex;
-      justify-content: space-between;
+      justify-content: flex-start;
       align-items: center;
       margin-bottom: 15px;
     }
@@ -23,8 +25,8 @@
     }
     
     .add-btn {
-      background-color: #4285f4;
-      color: white;
+      background-color: #23484f;
+      color: #ffffff;
       border: none;
       padding: 8px 12px;
       border-radius: 4px;
@@ -45,18 +47,35 @@
       text-align: center;
       position: relative;
     }
+
+    .add-shortcut {
+      cursor: pointer;
+    }
     
     .shortcut-icon {
       width: 48px;
       height: 48px;
       border-radius: 50%;
-      background-color: #f1f3f4;
+      background-color: rgba(255, 255, 255, 0.12);
       display: flex;
       align-items: center;
       justify-content: center;
       margin-bottom: 5px;
       cursor: pointer;
       overflow: hidden;
+    }
+
+    .add-shortcut .shortcut-icon {
+      width: 56px;
+      height: 56px;
+      background-color: rgba(255, 255, 255, 0.14);
+    }
+
+    .add-plus {
+      font-size: 34px;
+      line-height: 1;
+      color: #ffffff;
+      margin-top: -2px;
     }
     
     .shortcut-icon img {
@@ -70,6 +89,7 @@
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+      color: #ffffff;
     }
     
     .add-form, .edit-form {
@@ -175,7 +195,6 @@
 <body>
   <div class="header">
     <h1>Web Shortcutlar</h1>
-    <button class="add-btn" id="addShortcutBtn" type="button">+ Shortcut</button>
   </div>
   
   <div class="add-form" id="addForm">

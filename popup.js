@@ -1,6 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
     // DOM elementlarini olish
-    const addShortcutBtn = document.getElementById('addShortcutBtn');
     const addForm = document.getElementById('addForm');
     const editForm = document.getElementById('editForm');
     const cancelBtn = document.getElementById('cancelBtn');
@@ -14,6 +13,19 @@ document.addEventListener('DOMContentLoaded', function() {
     const editShortcutId = document.getElementById('editShortcutId');
     const shortcutsGrid = document.getElementById('shortcutsGrid');
     
+    const DEFAULT_SHORTCUTS = [
+      {
+        id: 1,
+        title: 'YouTube',
+        url: 'https://www.youtube.com'
+      },
+      {
+        id: 2,
+        title: 'GitHub',
+        url: 'https://github.com'
+      }
+    ];
+
     // Saqlangan shortcutlarni yuklash
     loadShortcuts();
     
@@ -29,11 +41,11 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     });
     
-    // "Add Shortcut" tugmasi bosilganda formani ko'rsatish
-    addShortcutBtn.addEventListener('click', function() {
+    // Add shortcut formasini ko'rsatish
+    function openAddForm() {
       addForm.style.display = 'block';
       editForm.style.display = 'none';
-    });
+    }
     
     // "Cancel" tugmasi bosilganda formani yashirish
     cancelBtn.addEventListener('click', function() {
@@ -104,9 +116,22 @@ document.addEventListener('DOMContentLoaded', function() {
     function loadShortcuts() {
       chrome.storage.sync.get('shortcuts', function(data) {
         const shortcuts = data.shortcuts || [];
+
+        // Birinchi ishga tushishda default shortcutlarni qo'yish
+        if (!shortcuts.length) {
+          chrome.storage.sync.set({ shortcuts: DEFAULT_SHORTCUTS }, function() {
+            shortcutsGrid.innerHTML = '';
+            addAddShortcutTile();
+            DEFAULT_SHORTCUTS.forEach(function(shortcut) {
+              addShortcutToGrid(shortcut);
+            });
+          });
+          return;
+        }
         
         // Barcha shortcutlarni ko'rsatish
         shortcutsGrid.innerHTML = '';
+        addAddShortcutTile();
         shortcuts.forEach(function(shortcut) {
           addShortcutToGrid(shortcut);
         });
@@ -209,10 +234,11 @@ document.addEventListener('DOMContentLoaded', function() {
       // Favicon URL ni aniqlash
       const urlObj = new URL(shortcut.url);
       const faviconUrl = `https://www.google.com/s2/favicons?domain=${urlObj.hostname}&sz=64`;
+      const fallbackIcon = getDefaultIconForUrl(shortcut.url, shortcut.title);
       
       shortcutElement.innerHTML = `
         <div class="shortcut-icon" data-url="${shortcut.url}">
-          <img src="${faviconUrl}" alt="${shortcut.title}" onerror="this.src='images/default-icon.png';">
+          <img src="${faviconUrl}" alt="${shortcut.title}">
         </div>
         <div class="shortcut-title">${shortcut.title}</div>
         <div class="shortcut-menu">
@@ -226,6 +252,12 @@ document.addEventListener('DOMContentLoaded', function() {
       
       // Shortcut bosilganda saytni ochish
       const iconElement = shortcutElement.querySelector('.shortcut-icon');
+      const iconImage = shortcutElement.querySelector('.shortcut-icon img');
+
+      iconImage.addEventListener('error', function() {
+        this.src = fallbackIcon;
+      }, { once: true });
+
       iconElement.addEventListener('click', function(e) {
         const url = this.getAttribute('data-url');
         chrome.tabs.create({ url: url });
@@ -269,5 +301,49 @@ document.addEventListener('DOMContentLoaded', function() {
       });
       
       shortcutsGrid.appendChild(shortcutElement);
+    }
+
+    function addAddShortcutTile() {
+      const addShortcutElement = document.createElement('div');
+      addShortcutElement.className = 'shortcut add-shortcut';
+      addShortcutElement.innerHTML = `
+        <div class="shortcut-icon" role="button" aria-label="Add shortcut">
+          <span class="add-plus">+</span>
+        </div>
+        <div class="shortcut-title">Add shortcut</div>
+      `;
+
+      addShortcutElement.addEventListener('click', function() {
+        openAddForm();
+      });
+
+      shortcutsGrid.appendChild(addShortcutElement);
+    }
+
+    function getDefaultIconForUrl(url, title) {
+      let hostname = '';
+
+      try {
+        hostname = new URL(url).hostname.toLowerCase();
+      } catch (error) {
+        hostname = '';
+      }
+
+      if (hostname.includes('youtube.com') || hostname.includes('youtu.be')) {
+        return createIconSvg('#ff0000', 'YT');
+      }
+
+      if (hostname.includes('github.com')) {
+        return createIconSvg('#24292f', 'GH');
+      }
+
+      const safeTitle = (title || 'W').trim();
+      const label = safeTitle ? safeTitle.charAt(0).toUpperCase() : 'W';
+      return createIconSvg('#4285f4', label);
+    }
+
+    function createIconSvg(bgColor, label) {
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"><rect width="64" height="64" rx="32" fill="${bgColor}"/><text x="32" y="39" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-size="22" font-weight="700">${label}</text></svg>`;
+      return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
     }
   });
