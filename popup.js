@@ -246,7 +246,7 @@ document.addEventListener('DOMContentLoaded', function() {
       
       // Favicon URL ni aniqlash
       const urlObj = new URL(shortcut.url);
-      const faviconUrl = `https://www.google.com/s2/favicons?domain=${urlObj.hostname}&sz=64`;
+      const faviconUrl = `https://www.google.com/s2/favicons?domain_url=${encodeURIComponent(urlObj.origin)}&sz=64`;
       const fallbackIcon = getDefaultIconForUrl(shortcut.url, shortcut.title);
       
       shortcutElement.innerHTML = `
