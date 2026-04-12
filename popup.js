@@ -23,6 +23,11 @@ document.addEventListener('DOMContentLoaded', function() {
         id: 2,
         title: 'GitHub',
         url: 'https://github.com'
+      },
+      {
+        id: 3,
+        title: 'LinkedIn',
+        url: 'https://www.linkedin.com'
       }
     ];
 
@@ -114,12 +119,24 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Shortcutlarni yuklash funksiyasi
     function loadShortcuts() {
-      chrome.storage.sync.get('shortcuts', function(data) {
+      chrome.storage.sync.get(['shortcuts', 'defaultsInitialized'], function(data) {
         const shortcuts = data.shortcuts || [];
+        const defaultsInitialized = Boolean(data.defaultsInitialized);
 
-        // Birinchi ishga tushishda default shortcutlarni qo'yish
-        if (!shortcuts.length) {
-          chrome.storage.sync.set({ shortcuts: DEFAULT_SHORTCUTS }, function() {
+        // Default shortcutlarni faqat bir marta qo'yish
+        if (!defaultsInitialized) {
+          if (!shortcuts.length) {
+            chrome.storage.sync.set({
+              shortcuts: DEFAULT_SHORTCUTS,
+              defaultsInitialized: true
+            }, function() {
+              loadShortcuts();
+            });
+            return;
+          }
+
+          // Agar userda allaqachon shortcut bo'lsa, default init flagini qo'yib ketamiz
+          chrome.storage.sync.set({ defaultsInitialized: true }, function() {
             loadShortcuts();
           });
           return;
