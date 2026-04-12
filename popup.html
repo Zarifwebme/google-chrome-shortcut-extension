@@ -66,13 +66,13 @@
     }
 
     .add-shortcut .shortcut-icon {
-      width: 56px;
-      height: 56px;
-      background-color: rgba(255, 255, 255, 0.14);
+      width: 48px;
+      height: 48px;
+      background-color: rgba(255, 255, 255, 0.12);
     }
 
     .add-plus {
-      font-size: 34px;
+      font-size: 30px;
       line-height: 1;
       color: #ffffff;
       margin-top: -2px;
@@ -93,7 +93,10 @@
     }
     
     .add-form, .edit-form {
-      background-color: #f1f3f4;
+      background-color: #f8fbfc;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+      color: #1f2933;
       padding: 15px;
       border-radius: 8px;
       margin-bottom: 15px;
@@ -108,14 +111,22 @@
       display: block;
       margin-bottom: 5px;
       font-size: 14px;
+      color: #1f2933;
+      font-weight: 600;
     }
     
     .form-group input {
       width: 100%;
       padding: 8px;
-      border: 1px solid #ddd;
+      border: 1px solid #b8c4cc;
+      background-color: #ffffff;
+      color: #1f2933;
       border-radius: 4px;
       box-sizing: border-box;
+    }
+
+    .form-group input::placeholder {
+      color: #6b7280;
     }
     
     .form-actions {
@@ -125,8 +136,9 @@
     }
     
     .cancel-btn {
-      background-color: #f1f3f4;
-      border: 1px solid #ddd;
+      background-color: #ffffff;
+      color: #111827;
+      border: 1px solid #c5d0d8;
       padding: 8px 12px;
       border-radius: 4px;
       cursor: pointer;

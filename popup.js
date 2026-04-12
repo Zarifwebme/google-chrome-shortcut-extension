@@ -120,21 +120,17 @@ document.addEventListener('DOMContentLoaded', function() {
         // Birinchi ishga tushishda default shortcutlarni qo'yish
         if (!shortcuts.length) {
           chrome.storage.sync.set({ shortcuts: DEFAULT_SHORTCUTS }, function() {
-            shortcutsGrid.innerHTML = '';
-            addAddShortcutTile();
-            DEFAULT_SHORTCUTS.forEach(function(shortcut) {
-              addShortcutToGrid(shortcut);
-            });
+            loadShortcuts();
           });
           return;
         }
         
         // Barcha shortcutlarni ko'rsatish
         shortcutsGrid.innerHTML = '';
-        addAddShortcutTile();
         shortcuts.forEach(function(shortcut) {
           addShortcutToGrid(shortcut);
         });
+        addAddShortcutTile();
       });
     }
     
@@ -153,8 +149,8 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Yangilangan ro'yxatni saqlash
         chrome.storage.sync.set({shortcuts: shortcuts}, function() {
-          // Yangi shortcutni grid'ga qo'shish
-          addShortcutToGrid(shortcut);
+          // Tartibni saqlash uchun ro'yxatni qayta chizish
+          loadShortcuts();
         });
       });
     }
