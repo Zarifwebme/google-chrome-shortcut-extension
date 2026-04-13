@@ -1,4 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
+  const FAVICON_CACHE_KEY = 'faviconCache';
+  const FAVICON_CACHE_TTL_MS = 1000 * 60 * 60 * 24 * 14; // 14 kun
+
     // DOM elementlarini olish
     const addForm = document.getElementById('addForm');
     const editForm = document.getElementById('editForm');
@@ -82,8 +85,10 @@ document.addEventListener('DOMContentLoaded', function() {
         url = 'https://' + url;
       }
       
-      // Shortcut yaratish
-      createShortcut(title, url);
+      // Shortcut yaratishdan oldin faviconni cachega tayyorlaymiz
+      prefetchAndCacheFavicon(url, title, function(cachedIcon) {
+        createShortcut(title, url, cachedIcon);
+      });
       
       // Formani tozalash va yashirish
       shortcutTitle.value = '';
@@ -107,8 +112,10 @@ document.addEventListener('DOMContentLoaded', function() {
         url = 'https://' + url;
       }
       
-      // Shortcutni yangilash
-      updateShortcut(id, title, url);
+      // Yangilashdan oldin yangi URL/title uchun faviconni cachega tayyorlaymiz
+      prefetchAndCacheFavicon(url, title, function(cachedIcon) {
+        updateShortcut(id, title, url, cachedIcon);
+      });
       
       // Formani tozalash va yashirish
       editShortcutTitle.value = '';
@@ -142,21 +149,24 @@ document.addEventListener('DOMContentLoaded', function() {
           return;
         }
         
-        // Barcha shortcutlarni ko'rsatish
-        shortcutsGrid.innerHTML = '';
-        shortcuts.forEach(function(shortcut) {
-          addShortcutToGrid(shortcut);
+        applyCachedIconsToShortcuts(shortcuts, function(shortcutsWithCachedIcons) {
+          // Barcha shortcutlarni ko'rsatish
+          shortcutsGrid.innerHTML = '';
+          shortcutsWithCachedIcons.forEach(function(shortcut) {
+            addShortcutToGrid(shortcut);
+          });
+          addAddShortcutTile();
         });
-        addAddShortcutTile();
       });
     }
     
     // Yangi shortcut yaratish va saqlash
-    function createShortcut(title, url) {
+    function createShortcut(title, url, icon) {
       const shortcut = {
         id: Date.now(), // Unique ID
         title: title,
-        url: url
+        url: url,
+        icon: icon || ''
       };
       
       // Mavjud shortcutlarni olish va yangi shortcut qo'shish
@@ -173,7 +183,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Shortcutni yangilash funksiyasi
-    function updateShortcut(id, title, url) {
+    function updateShortcut(id, title, url, icon) {
       chrome.storage.sync.get('shortcuts', function(data) {
         const shortcuts = data.shortcuts || [];
         
@@ -183,7 +193,8 @@ document.addEventListener('DOMContentLoaded', function() {
             return {
               id: id,
               title: title,
-              url: url
+              url: url,
+              icon: icon || shortcut.icon || ''
             };
           }
           return shortcut;
@@ -247,10 +258,11 @@ document.addEventListener('DOMContentLoaded', function() {
       // Bir nechta manbadan favicon olishga harakat qilamiz.
       const faviconCandidates = getFaviconCandidates(shortcut.url);
       const fallbackIcon = getDefaultIconForUrl(shortcut.url, shortcut.title);
+      const initialIcon = shortcut.icon || faviconCandidates[0] || fallbackIcon;
       
       shortcutElement.innerHTML = `
         <div class="shortcut-icon" data-url="${shortcut.url}">
-          <img src="${faviconCandidates[0] || fallbackIcon}" alt="${shortcut.title}">
+          <img src="${initialIcon}" alt="${shortcut.title}">
         </div>
         <div class="shortcut-title">${shortcut.title}</div>
         <div class="shortcut-menu">
@@ -265,7 +277,7 @@ document.addEventListener('DOMContentLoaded', function() {
       // Shortcut bosilganda saytni ochish
       const iconElement = shortcutElement.querySelector('.shortcut-icon');
       const iconImage = shortcutElement.querySelector('.shortcut-icon img');
-      let faviconIndex = 0;
+      let faviconIndex = shortcut.icon ? faviconCandidates.length : 0;
 
       iconImage.addEventListener('error', function() {
         faviconIndex += 1;
@@ -277,6 +289,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
         this.src = fallbackIcon;
       });
+
+      // Agar shortcutda icon yo'q bo'lsa, birinchi muvaffaqiyatli ikonani saqlab qo'yamiz.
+      if (!shortcut.icon) {
+        iconImage.addEventListener('load', function() {
+          const loadedSrc = this.currentSrc || this.src;
+          cacheFaviconByUrl(shortcut.url, loadedSrc, function() {
+            persistShortcutIcon(shortcut.id, loadedSrc);
+          });
+        }, { once: true });
+      }
 
       iconElement.addEventListener('click', function(e) {
         const url = this.getAttribute('data-url');
@@ -381,5 +403,170 @@ document.addEventListener('DOMContentLoaded', function() {
     function createIconSvg(bgColor, label) {
       const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"><rect width="64" height="64" rx="32" fill="${bgColor}"/><text x="32" y="39" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-size="22" font-weight="700">${label}</text></svg>`;
       return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+    }
+
+    function getFaviconCacheKey(url) {
+      try {
+        return new URL(url).hostname.toLowerCase();
+      } catch (error) {
+        return '';
+      }
+    }
+
+    function getCachedFaviconByUrl(url, callback) {
+      const cacheKey = getFaviconCacheKey(url);
+      if (!cacheKey) {
+        callback('');
+        return;
+      }
+
+      chrome.storage.local.get(FAVICON_CACHE_KEY, function(data) {
+        const cache = data[FAVICON_CACHE_KEY] || {};
+        const cachedItem = cache[cacheKey];
+
+        if (!cachedItem || !cachedItem.src || !cachedItem.savedAt) {
+          callback('');
+          return;
+        }
+
+        const isExpired = (Date.now() - cachedItem.savedAt) > FAVICON_CACHE_TTL_MS;
+        if (isExpired) {
+          delete cache[cacheKey];
+          chrome.storage.local.set({ [FAVICON_CACHE_KEY]: cache }, function() {
+            callback('');
+          });
+          return;
+        }
+
+        callback(cachedItem.src);
+      });
+    }
+
+    function applyCachedIconsToShortcuts(shortcuts, callback) {
+      // Bu render paytida keraksiz qayta so'rovlarni kamaytiradi.
+      chrome.storage.local.get(FAVICON_CACHE_KEY, function(data) {
+        const cacheSnapshot = data[FAVICON_CACHE_KEY] || {};
+
+        const mergedShortcuts = shortcuts.map(function(shortcut) {
+          if (shortcut.icon) {
+            return shortcut;
+          }
+
+          const cacheKey = getFaviconCacheKey(shortcut.url);
+          const cachedItem = cacheSnapshot[cacheKey];
+
+          if (!cachedItem || !cachedItem.src || !cachedItem.savedAt) {
+            return shortcut;
+          }
+
+          const isExpired = (Date.now() - cachedItem.savedAt) > FAVICON_CACHE_TTL_MS;
+          if (isExpired) {
+            return shortcut;
+          }
+
+          return {
+            id: shortcut.id,
+            title: shortcut.title,
+            url: shortcut.url,
+            icon: cachedItem.src
+          };
+        });
+
+        callback(mergedShortcuts);
+      });
+    }
+
+    function cacheFaviconByUrl(url, src, callback) {
+      const cacheKey = getFaviconCacheKey(url);
+      if (!cacheKey || !src) {
+        if (callback) {
+          callback();
+        }
+        return;
+      }
+
+      chrome.storage.local.get(FAVICON_CACHE_KEY, function(data) {
+        const cache = data[FAVICON_CACHE_KEY] || {};
+        cache[cacheKey] = {
+          src: src,
+          savedAt: Date.now()
+        };
+
+        chrome.storage.local.set({ [FAVICON_CACHE_KEY]: cache }, function() {
+          if (callback) {
+            callback();
+          }
+        });
+      });
+    }
+
+    function persistShortcutIcon(id, iconSrc) {
+      chrome.storage.sync.get('shortcuts', function(data) {
+        const shortcuts = data.shortcuts || [];
+        const updatedShortcuts = shortcuts.map(function(shortcut) {
+          if (shortcut.id === id) {
+            return {
+              id: shortcut.id,
+              title: shortcut.title,
+              url: shortcut.url,
+              icon: iconSrc
+            };
+          }
+          return shortcut;
+        });
+
+        chrome.storage.sync.set({ shortcuts: updatedShortcuts });
+      });
+    }
+
+    function prefetchAndCacheFavicon(url, title, callback) {
+      getCachedFaviconByUrl(url, function(cachedSrc) {
+        if (cachedSrc) {
+          callback(cachedSrc);
+          return;
+        }
+
+        const candidates = getFaviconCandidates(url);
+        const fallbackIcon = getDefaultIconForUrl(url, title);
+
+        loadFirstAvailableImage(candidates, function(bestSrc) {
+          const finalSrc = bestSrc || fallbackIcon;
+
+          cacheFaviconByUrl(url, finalSrc, function() {
+            callback(finalSrc);
+          });
+        });
+      });
+    }
+
+    function loadFirstAvailableImage(srcList, callback) {
+      if (!srcList || !srcList.length) {
+        callback('');
+        return;
+      }
+
+      let index = 0;
+
+      function tryNext() {
+        if (index >= srcList.length) {
+          callback('');
+          return;
+        }
+
+        const src = srcList[index];
+        index += 1;
+
+        const img = new Image();
+        img.referrerPolicy = 'no-referrer';
+        img.onload = function() {
+          callback(src);
+        };
+        img.onerror = function() {
+          tryNext();
+        };
+        img.src = src;
+      }
+
+      tryNext();
     }
   });
