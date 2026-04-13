@@ -244,14 +244,13 @@ document.addEventListener('DOMContentLoaded', function() {
       shortcutElement.className = 'shortcut';
       shortcutElement.dataset.id = shortcut.id;
       
-      // Favicon URL ni aniqlash
-      const urlObj = new URL(shortcut.url);
-      const faviconUrl = `https://www.google.com/s2/favicons?domain_url=${encodeURIComponent(urlObj.origin)}&sz=64`;
+      // Bir nechta manbadan favicon olishga harakat qilamiz.
+      const faviconCandidates = getFaviconCandidates(shortcut.url);
       const fallbackIcon = getDefaultIconForUrl(shortcut.url, shortcut.title);
       
       shortcutElement.innerHTML = `
         <div class="shortcut-icon" data-url="${shortcut.url}">
-          <img src="${faviconUrl}" alt="${shortcut.title}">
+          <img src="${faviconCandidates[0] || fallbackIcon}" alt="${shortcut.title}">
         </div>
         <div class="shortcut-title">${shortcut.title}</div>
         <div class="shortcut-menu">
@@ -266,10 +265,18 @@ document.addEventListener('DOMContentLoaded', function() {
       // Shortcut bosilganda saytni ochish
       const iconElement = shortcutElement.querySelector('.shortcut-icon');
       const iconImage = shortcutElement.querySelector('.shortcut-icon img');
+      let faviconIndex = 0;
 
       iconImage.addEventListener('error', function() {
+        faviconIndex += 1;
+
+        if (faviconIndex < faviconCandidates.length) {
+          this.src = faviconCandidates[faviconIndex];
+          return;
+        }
+
         this.src = fallbackIcon;
-      }, { once: true });
+      });
 
       iconElement.addEventListener('click', function(e) {
         const url = this.getAttribute('data-url');
@@ -353,6 +360,22 @@ document.addEventListener('DOMContentLoaded', function() {
       const safeTitle = (title || 'W').trim();
       const label = safeTitle ? safeTitle.charAt(0).toUpperCase() : 'W';
       return createIconSvg('#4285f4', label);
+    }
+
+    function getFaviconCandidates(url) {
+      try {
+        const parsedUrl = new URL(url);
+        const origin = parsedUrl.origin;
+        const hostname = parsedUrl.hostname;
+
+        return [
+          `${origin}/favicon.ico`,
+          `https://icons.duckduckgo.com/ip3/${hostname}.ico`,
+          `https://www.google.com/s2/favicons?domain_url=${encodeURIComponent(origin)}&sz=64`
+        ];
+      } catch (error) {
+        return [];
+      }
     }
 
     function createIconSvg(bgColor, label) {
