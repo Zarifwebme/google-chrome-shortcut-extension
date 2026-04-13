@@ -14,7 +14,12 @@ A simple and visually appealing Chrome extension that allows you to create short
 
 1. **Clone the repository**  
    ```sh
-   git clone https://github.com/Zarifwebme/Shortcut_Extension.git
-   cd Shortcut_Extension
+   git clone https://github.com/Zarifwebme/google-chrome-shortcut-extension.git
    
+   Enter this command in google chrome url part chrome://extensions/
+
+   Then click the Load unpack button and select the folder you downloaded
+
+
+
 ![Example](shortcut.png)
