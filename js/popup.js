@@ -169,6 +169,19 @@ document.addEventListener('DOMContentLoaded', function() {
     return url;
   }
 
+  // Dropdown menuni ochishdan oldin uning popup chegarasidan tashqariga
+  // chiqib ketmasligini ta'minlaydi. Standart holatda menu chapdan o'ngga
+  // ochiladi (left: 0); agar shu holatda popup'ning o'ng chetidan tashqariga
+  // chiqib ketsa, .align-end klassi orqali o'ngdan chapga ochilishga o'zgartiriladi.
+  function positionDropdownMenu(trigger, menu) {
+    const triggerRect = trigger.getBoundingClientRect();
+    const menuWidth = menu.offsetWidth;
+    const viewportWidth = document.documentElement.clientWidth;
+    const wouldOverflowRight = (triggerRect.left + menuWidth) > viewportWidth;
+
+    menu.classList.toggle('align-end', wouldOverflowRight);
+  }
+
   // Saqlangan shortcutlarni (keshlangan ikonkalar bilan) grid'da qayta chizadi
   function renderShortcuts() {
     getShortcuts(function(shortcuts) {
@@ -265,6 +278,11 @@ document.addEventListener('DOMContentLoaded', function() {
           menu.classList.remove('show');
         }
       });
+
+      const isOpening = !dropdownMenu.classList.contains('show');
+      if (isOpening) {
+        positionDropdownMenu(menuBtn, dropdownMenu);
+      }
       // Menu ko'rsatish/yashirish
       dropdownMenu.classList.toggle('show');
     });
