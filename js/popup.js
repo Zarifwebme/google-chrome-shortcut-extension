@@ -15,7 +15,9 @@ import {
 
 document.addEventListener('DOMContentLoaded', function() {
   // DOM elementlarini olish
+  const addFormOverlay = document.getElementById('addFormOverlay');
   const addForm = document.getElementById('addForm');
+  const editFormOverlay = document.getElementById('editFormOverlay');
   const editForm = document.getElementById('editForm');
   const cancelBtn = document.getElementById('cancelBtn');
   const cancelEditBtn = document.getElementById('cancelEditBtn');
@@ -43,25 +45,73 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
-  // Add shortcut formasini ko'rsatish
+  // Add shortcut formasini (markazlashtirilgan modal sifatida) ko'rsatish
   function openAddForm() {
-    addForm.style.display = 'block';
-    editForm.style.display = 'none';
+    closeEditForm();
+    addFormOverlay.classList.add('show');
+  }
+
+  // Add shortcut modalini yopish
+  function closeAddForm() {
+    addFormOverlay.classList.remove('show');
+  }
+
+  function resetAddForm() {
+    shortcutTitle.value = '';
+    shortcutUrl.value = '';
+  }
+
+  // Edit shortcut modalini yopish
+  function closeEditForm() {
+    editFormOverlay.classList.remove('show');
+  }
+
+  function resetEditForm() {
+    editShortcutTitle.value = '';
+    editShortcutUrl.value = '';
+    editShortcutId.value = '';
   }
 
   // "Cancel" tugmasi bosilganda formani yashirish
   cancelBtn.addEventListener('click', function() {
-    addForm.style.display = 'none';
-    shortcutTitle.value = '';
-    shortcutUrl.value = '';
+    closeAddForm();
+    resetAddForm();
   });
 
   // "Cancel Edit" tugmasi bosilganda edit formani yashirish
   cancelEditBtn.addEventListener('click', function() {
-    editForm.style.display = 'none';
-    editShortcutTitle.value = '';
-    editShortcutUrl.value = '';
-    editShortcutId.value = '';
+    closeEditForm();
+    resetEditForm();
+  });
+
+  // Overlay (modal tashqarisiga) bosilganda formani yashirish
+  addFormOverlay.addEventListener('click', function(event) {
+    if (event.target === addFormOverlay) {
+      closeAddForm();
+      resetAddForm();
+    }
+  });
+
+  editFormOverlay.addEventListener('click', function(event) {
+    if (event.target === editFormOverlay) {
+      closeEditForm();
+      resetEditForm();
+    }
+  });
+
+  // Escape tugmasi bosilganda ochiq modalni yopish
+  document.addEventListener('keydown', function(event) {
+    if (event.key !== 'Escape') {
+      return;
+    }
+    if (addFormOverlay.classList.contains('show')) {
+      closeAddForm();
+      resetAddForm();
+    }
+    if (editFormOverlay.classList.contains('show')) {
+      closeEditForm();
+      resetEditForm();
+    }
   });
 
   // "Save" tugmasi bosilganda shortcut yaratish
@@ -84,9 +134,8 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Formani tozalash va yashirish
-    shortcutTitle.value = '';
-    shortcutUrl.value = '';
-    addForm.style.display = 'none';
+    resetAddForm();
+    closeAddForm();
   });
 
   // "Update" tugmasi bosilganda shortcutni yangilash
@@ -108,10 +157,8 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Formani tozalash va yashirish
-    editShortcutTitle.value = '';
-    editShortcutUrl.value = '';
-    editShortcutId.value = '';
-    editForm.style.display = 'none';
+    resetEditForm();
+    closeEditForm();
   });
 
   // URLga http:// yoki https:// qo'shish, agar mavjud bo'lmasa
@@ -144,8 +191,8 @@ document.addEventListener('DOMContentLoaded', function() {
       editShortcutTitle.value = shortcut.title;
       editShortcutUrl.value = shortcut.url;
 
-      addForm.style.display = 'none';
-      editForm.style.display = 'block';
+      closeAddForm();
+      editFormOverlay.classList.add('show');
     });
   }
 

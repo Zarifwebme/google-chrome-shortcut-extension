@@ -11,37 +11,41 @@
     <h1>Web Shortcutlar</h1>
   </div>
   <hr>
-  <div class="add-form" id="addForm">
-    <div class="form-group">
-      <label for="shortcutTitle">Sarlavha:</label>
-      <input type="text" id="shortcutTitle" placeholder="Sayt nomi">
-    </div>
-    <div class="form-group">
-      <label for="shortcutUrl">URL:</label>
-      <input type="url" id="shortcutUrl" placeholder="https://example.com">
-    </div>
-    <div class="form-actions">
-      <button class="cancel-btn" id="cancelBtn" type="button">Bekor qilish</button>
-      <button class="save-btn" id="saveShortcutBtn" type="button">Saqlash</button>
-    </div>
-  </div>
-  
-  <div class="edit-form" id="editForm">
-    <div class="form-group">
-      <label for="editShortcutTitle">Sarlavha:</label>
-      <input type="text" id="editShortcutTitle" placeholder="Sayt nomi">
-    </div>
-    <div class="form-group">
-      <label for="editShortcutUrl">URL:</label>
-      <input type="url" id="editShortcutUrl" placeholder="https://example.com">
-    </div>
-    <input type="hidden" id="editShortcutId">
-    <div class="form-actions">
-      <button class="cancel-btn" id="cancelEditBtn" type="button">Bekor qilish</button>
-      <button class="save-btn" id="updateShortcutBtn" type="button">O'zgartirish</button>
+  <div class="modal-overlay" id="addFormOverlay">
+    <div class="add-form" id="addForm">
+      <div class="form-group">
+        <label for="shortcutTitle">Sarlavha:</label>
+        <input type="text" id="shortcutTitle" placeholder="Sayt nomi">
+      </div>
+      <div class="form-group">
+        <label for="shortcutUrl">URL:</label>
+        <input type="url" id="shortcutUrl" placeholder="https://example.com">
+      </div>
+      <div class="form-actions">
+        <button class="cancel-btn" id="cancelBtn" type="button">Bekor qilish</button>
+        <button class="save-btn" id="saveShortcutBtn" type="button">Saqlash</button>
+      </div>
     </div>
   </div>
-  
+
+  <div class="modal-overlay" id="editFormOverlay">
+    <div class="edit-form" id="editForm">
+      <div class="form-group">
+        <label for="editShortcutTitle">Sarlavha:</label>
+        <input type="text" id="editShortcutTitle" placeholder="Sayt nomi">
+      </div>
+      <div class="form-group">
+        <label for="editShortcutUrl">URL:</label>
+        <input type="url" id="editShortcutUrl" placeholder="https://example.com">
+      </div>
+      <input type="hidden" id="editShortcutId">
+      <div class="form-actions">
+        <button class="cancel-btn" id="cancelEditBtn" type="button">Bekor qilish</button>
+        <button class="save-btn" id="updateShortcutBtn" type="button">O'zgartirish</button>
+      </div>
+    </div>
+  </div>
+
   <div class="shortcuts-grid" id="shortcutsGrid">
     <!-- Shortcuts will be dynamically added here -->
   </div>
