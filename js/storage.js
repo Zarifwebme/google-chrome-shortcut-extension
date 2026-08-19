@@ -7,7 +7,14 @@ function mutateShortcuts(transform, callback) {
     const shortcuts = data.shortcuts || [];
     const updatedShortcuts = transform(shortcuts);
 
-    chrome.storage.sync.set({ shortcuts: updatedShortcuts }, callback);
+    chrome.storage.sync.set({ shortcuts: updatedShortcuts }, function() {
+      // chrome.storage.sync.set() bajaruvchi callback har doim chaqiriladi,
+      // hatto kvota chegarasi kabi xatolarda ham - shuning uchun xatoni
+      // chrome.runtime.lastError orqali chaqiruvchiga uzatamiz.
+      if (callback) {
+        callback(chrome.runtime.lastError || null);
+      }
+    });
   });
 }
 

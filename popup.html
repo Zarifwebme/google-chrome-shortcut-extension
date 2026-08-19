@@ -21,6 +21,7 @@
         <label for="shortcutUrl">URL:</label>
         <input type="url" id="shortcutUrl" placeholder="https://example.com">
       </div>
+      <p class="form-error" id="addFormError" role="alert" hidden></p>
       <div class="form-actions">
         <button class="cancel-btn" id="cancelBtn" type="button">Bekor qilish</button>
         <button class="save-btn" id="saveShortcutBtn" type="button">Saqlash</button>
@@ -39,9 +40,20 @@
         <input type="url" id="editShortcutUrl" placeholder="https://example.com">
       </div>
       <input type="hidden" id="editShortcutId">
+      <p class="form-error" id="editFormError" role="alert" hidden></p>
       <div class="form-actions">
         <button class="cancel-btn" id="cancelEditBtn" type="button">Bekor qilish</button>
         <button class="save-btn" id="updateShortcutBtn" type="button">O'zgartirish</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="confirmDeleteOverlay">
+    <div class="confirm-dialog" id="confirmDeleteDialog" role="alertdialog" aria-modal="true" aria-labelledby="confirmDeleteMessage">
+      <p class="confirm-dialog-message" id="confirmDeleteMessage">Are you sure?</p>
+      <div class="confirm-dialog-actions">
+        <button class="confirm-no-btn" id="confirmDeleteNoBtn" type="button">No</button>
+        <button class="confirm-yes-btn" id="confirmDeleteYesBtn" type="button">Yes</button>
       </div>
     </div>
   </div>
