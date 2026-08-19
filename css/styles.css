@@ -118,6 +118,17 @@ hr {
   align-items: center;
   text-align: center;
   position: relative;
+  z-index: 1;
+}
+
+/* Toggled by popup.js while this card's dropdown is open. Promoting the
+   whole card (not just the dropdown) above its siblings is required
+   because .shortcut-icon and .shortcut-menu each create their own
+   stacking context (backdrop-filter), which traps a bare z-index on
+   .dropdown-menu inside .shortcut-menu's context instead of letting it
+   compete against sibling cards. */
+.shortcut.menu-open {
+  z-index: 999;
 }
 
 .add-shortcut {
@@ -363,16 +374,17 @@ hr {
 
 .dropdown-menu {
   position: absolute;
-  top: 22px;
+  top: 100%;
   left: 0;
-  background: rgba(13, 17, 23, 0.72);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+  margin-top: 4px;
+  background-color: #1e232a;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--radius-sm);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-  z-index: 50;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  z-index: 1000;
   width: 130px;
   overflow: hidden;
   opacity: 0;

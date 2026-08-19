@@ -41,6 +41,10 @@ document.addEventListener('DOMContentLoaded', function() {
           !event.target.classList.contains('shortcut-menu') &&
           !event.target.classList.contains('shortcut-menu-dots')) {
         dropdown.classList.remove('show');
+        const card = dropdown.closest('.shortcut');
+        if (card) {
+          card.classList.remove('menu-open');
+        }
       }
     });
   });
@@ -276,6 +280,10 @@ document.addEventListener('DOMContentLoaded', function() {
       document.querySelectorAll('.dropdown-menu.show').forEach(function(menu) {
         if (menu !== dropdownMenu) {
           menu.classList.remove('show');
+          const otherCard = menu.closest('.shortcut');
+          if (otherCard) {
+            otherCard.classList.remove('menu-open');
+          }
         }
       });
 
@@ -285,6 +293,8 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       // Menu ko'rsatish/yashirish
       dropdownMenu.classList.toggle('show');
+      // Faol kartani qo'shni kartalar ustiga chiqarish (z-index) uchun
+      shortcutElement.classList.toggle('menu-open', dropdownMenu.classList.contains('show'));
     });
 
     // Edit tugmasi funksionaligi
@@ -294,6 +304,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const id = parseInt(shortcutElement.dataset.id);
       openEditForm(id);
       dropdownMenu.classList.remove('show');
+      shortcutElement.classList.remove('menu-open');
     });
 
     // O'chirish tugmasi funksionaligi
@@ -306,6 +317,7 @@ document.addEventListener('DOMContentLoaded', function() {
         removeShortcutById(id, renderShortcuts);
       }
       dropdownMenu.classList.remove('show');
+      shortcutElement.classList.remove('menu-open');
     });
 
     shortcutsGrid.appendChild(shortcutElement);
