@@ -19,6 +19,10 @@ html {
   display: flex;
   justify-content: center;
   align-items: center;
+  margin: 0;
+  padding: 0;
+  width: fit-content;
+  overflow-x: hidden;
   background: transparent;
 }
 
@@ -30,6 +34,7 @@ body {
   width: 350px;
   margin: 0;
   padding: 20px;
+  overflow-x: hidden;
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', 'Segoe UI', Roboto, Arial, sans-serif;
   font-weight: 500;
   color: #e2e8f0;
@@ -231,7 +236,7 @@ hr {
    Both windows share this exact modal treatment for a consistent design.
    ========================================================================== */
 .modal-overlay {
-  position: fixed;
+  position: absolute;
   inset: 0;
   z-index: 100;
   display: flex;
@@ -350,7 +355,9 @@ hr {
   position: absolute;
   top: 0;
   right: 0;
-  display: none;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
   cursor: pointer;
   width: 20px;
   height: 20px;
@@ -361,10 +368,13 @@ hr {
   -webkit-backdrop-filter: blur(6px);
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 50%;
+  transition: opacity 0.1s ease;
 }
 
 .shortcut:hover .shortcut-menu {
-  display: block;
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
 }
 
 .shortcut-menu-dots {
